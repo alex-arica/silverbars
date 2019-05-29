@@ -5,17 +5,17 @@ It uses an in-memory DB which is empty on start-up.
 
 The service exposes a restful API on HTTP port 26034
 
-- To register an order, send a POST request with a QuoteDto in JSON format in the body to: http://localhost:26034/order
+- To register an order, send a POST request with in the BODY a QuoteDto in JSON format to: http://localhost:26034/order
   
-  See the acceptance-test: RegisterOrderRestAdapterAcceptanceTest
+  See the acceptance-test: [RegisterOrderRestAdapterAcceptanceTest](https://github.com/alex-arica/silverbars/blob/master/src/test/java/acceptance/RegisterOrderRestAdapterAcceptanceTest.java)
   
 - To cancel an order, send a DELETE request with an orderId in parameter to: http://localhost:26034/order?orderId={value}
   
-  See the acceptance-test: CancelOrderRestAdapterAcceptanceTest
+  See the acceptance-test: [CancelOrderRestAdapterAcceptanceTest](https://github.com/alex-arica/silverbars/blob/master/src/test/java/acceptance/CancelOrderRestAdapterAcceptanceTest.java)
   
 - To summarize orders, send a GET request to: http://localhost:26034/orders/summary
   
-  See the acceptance-test: GetOrdersSummaryRestAdapterAcceptanceTest
+  See the acceptance-test: [GetOrdersSummaryRestAdapterAcceptanceTest](https://github.com/alex-arica/silverbars/blob/master/src/test/java/acceptance/GetOrdersSummaryRestAdapterAcceptanceTest.java)
 
   
 ## RUN locally Service in command-line
