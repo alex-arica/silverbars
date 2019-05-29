@@ -18,13 +18,13 @@ The service exposes a restful API on HTTP port 26034
   See the acceptance-test: [GetOrdersSummaryRestAdapterAcceptanceTest](https://github.com/alex-arica/silverbars/blob/master/src/test/java/acceptance/GetOrdersSummaryRestAdapterAcceptanceTest.java)
 
   
-## RUN locally Service in command-line
+## RUN service locally in command-line
 
 1) mvn clean package
 2) cd target
 3) java -jar silverbars-1.0-SNAPSHOT.jar
 
 
-## Run locally Service from IDE
+## Run service locally from IDE
 
 - Run the file: Main.java
