@@ -22,6 +22,8 @@ import static org.junit.Assert.assertEquals;
 
 public class GetOrdersSummaryRestAdapterAcceptanceTest {
 
+    private static final String HTTP_GET_URL = "http://localhost:26034/orders/summary";
+
     private final Gson gson = new Gson();
 
     @Before
@@ -66,7 +68,7 @@ public class GetOrdersSummaryRestAdapterAcceptanceTest {
 
     private List<OrdersSummaryDto> whenHttpRequestingToGetOrdersSummary() {
         final HttpClient httpClient = new HttpClient();
-        final String response = httpClient.getRequest("http://localhost:26034/orders/summary");
+        final String response = httpClient.getRequest(HTTP_GET_URL);
         return gson.fromJson(response, new TypeToken<ArrayList<OrdersSummaryDto>>(){}.getType());
     }
 

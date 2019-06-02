@@ -22,6 +22,8 @@ import static org.junit.Assert.*;
 
 public class CancelOrderRestAdapterAcceptanceTest {
 
+    private static final String HTTP_DELETE_URL = "http://localhost:26034/order";
+
     private final Gson gson = new Gson();
     private final List<OrderModel> orders = new ArrayList<>();
 
@@ -88,7 +90,7 @@ public class CancelOrderRestAdapterAcceptanceTest {
 
     private OrderDto whenHttpDeleteRequestSent(final String orderIdToCancel) {
         final HttpClient httpClient = new HttpClient();
-        final String canceledOrderJson = httpClient.deleteRequest("http://localhost:26034/order?orderId=" + orderIdToCancel);
+        final String canceledOrderJson = httpClient.deleteRequest(HTTP_DELETE_URL + "?orderId=" + orderIdToCancel);
         return gson.fromJson(canceledOrderJson, OrderDto.class);
     }
 
@@ -98,7 +100,7 @@ public class CancelOrderRestAdapterAcceptanceTest {
 
         try {
             final String orderIdParam = (orderIdToCancel != null) ? "?orderId=" + orderIdToCancel : "";
-            httpClient.deleteRequest("http://localhost:26034/order" + orderIdParam);
+            httpClient.deleteRequest(HTTP_DELETE_URL + orderIdParam);
         } catch (HttpClientException ex) {
             return ex;
         }

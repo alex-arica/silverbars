@@ -24,6 +24,8 @@ import static silverbars.model.OrderType.BUY;
 
 public class RegisterOrderRestAdapterAcceptanceTest {
 
+    private static final String HTTP_POST_URL = "http://localhost:26034/order";
+
     private final Gson gson = new Gson();
     private final Set<OrderModel> orders = new HashSet<>();
 
@@ -115,7 +117,7 @@ public class RegisterOrderRestAdapterAcceptanceTest {
         final String orderJson = gson.toJson(orderDtoToRegister);
 
         final HttpClient httpClient = new HttpClient();
-        final String registeredOrderJson = httpClient.postRequest("http://localhost:26034/order", orderJson);
+        final String registeredOrderJson = httpClient.postRequest(HTTP_POST_URL, orderJson);
 
         return gson.fromJson(registeredOrderJson, OrderDto.class);
     }
@@ -126,7 +128,7 @@ public class RegisterOrderRestAdapterAcceptanceTest {
 
         try {
             final String orderJson = gson.toJson(orderDtoToRegister);
-            httpClient.postRequest("http://localhost:26034/order", orderJson);
+            httpClient.postRequest(HTTP_POST_URL, orderJson);
 
         } catch (HttpClientException ex) {
             return ex;
