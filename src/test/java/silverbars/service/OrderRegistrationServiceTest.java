@@ -69,8 +69,8 @@ public class OrderRegistrationServiceTest {
         assertEquals(expectedOrder, orderOptional.get());
     }
 
-    private OrderModel givenExpectedOrderFromDb(String orderId) {
-        final OrderModel expectedOrder = mock(OrderModel.class);
+    private OrderModel givenExpectedOrderFromDb(final String orderId) {
+        final OrderModel expectedOrder = new OrderModel("orderId", "userId", 1.5f, 200, BUY);
         when(memoryBasedDbAdapter.removeById(orderId)).thenReturn(Optional.of(expectedOrder));
         return expectedOrder;
     }

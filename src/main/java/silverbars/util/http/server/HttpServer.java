@@ -8,7 +8,7 @@ import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import silverbars.configuration.context.HttpServerConfig;
+import silverbars.configuration.HttpServerConfig;
 
 import javax.servlet.http.HttpServlet;
 import java.util.concurrent.BlockingQueue;

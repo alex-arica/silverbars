@@ -5,6 +5,7 @@ import acceptance.util.client.HttpClient;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import silverbars.Main;
 import silverbars.adapter.api.rest.orders.dto.OrdersSummaryDto;
@@ -23,23 +24,23 @@ public class GetOrdersSummaryRestAdapterAcceptanceTest {
 
     private final Gson gson = new Gson();
 
+    @Before
+    public void beforeTest() {
+        AcceptanceTestService.start();
+        insertOrdersInDb();
+    }
+
     @After
     public void afterTest() {
         AcceptanceTestService.stop();
     }
 
     @Test
-    public void test() {
+    public void WHEN_http_request_to_get_orders_summary_THEN_they_should_be_grouped_by_price_AND_sorted_by_order_type() {
 
-        AcceptanceTestService.start();
+        final List<OrdersSummaryDto> ordersSummaryDtosToTest = whenHttpRequestingToGetOrdersSummary();
 
-        insertOrdersInDb();
-
-        final HttpClient httpClient = new HttpClient();
-        final String ordersSummaryJson = httpClient.getRequest("http://localhost:26034/orders/summary");
-
-        final List<OrdersSummaryDto> ordersSummaryDtosToTest = gson.fromJson(ordersSummaryJson, new TypeToken<ArrayList<OrdersSummaryDto>>(){}.getType());
-        checkOrdersSummaryDtos(ordersSummaryDtosToTest);
+        thenOrdersSummaryShouldBeGroupedByPriceAndSortedByOrderType(ordersSummaryDtosToTest);
     }
 
     private void insertOrdersInDb() {
@@ -63,9 +64,15 @@ public class GetOrdersSummaryRestAdapterAcceptanceTest {
         return orders;
     }
 
-    private void checkOrdersSummaryDtos(final List<OrdersSummaryDto> ordersSummaryDtosToTest) {
+    private List<OrdersSummaryDto> whenHttpRequestingToGetOrdersSummary() {
+        final HttpClient httpClient = new HttpClient();
+        final String response = httpClient.getRequest("http://localhost:26034/orders/summary");
+        return gson.fromJson(response, new TypeToken<ArrayList<OrdersSummaryDto>>(){}.getType());
+    }
 
-        final List<OrdersSummaryDto> expectedOrdersSummaryDtos = givenExpectedOrdersSummary();
+    private void thenOrdersSummaryShouldBeGroupedByPriceAndSortedByOrderType(final List<OrdersSummaryDto> ordersSummaryDtosToTest) {
+
+        final List<OrdersSummaryDto> expectedOrdersSummaryDtos = givenExpectedOrdersSummaryGroupedByPriceAndSortedByOrderType();
 
         assertEquals(expectedOrdersSummaryDtos.size(), ordersSummaryDtosToTest.size());
 
@@ -80,7 +87,7 @@ public class GetOrdersSummaryRestAdapterAcceptanceTest {
         }
     }
 
-    private List<OrdersSummaryDto> givenExpectedOrdersSummary() {
+    private List<OrdersSummaryDto> givenExpectedOrdersSummaryGroupedByPriceAndSortedByOrderType() {
         final List<OrdersSummaryDto> ordersSummary = new ArrayList<>();
         ordersSummary.add(new OrdersSummaryDto(OrderType.SELL, 306, 5.5f));
         ordersSummary.add(new OrdersSummaryDto(OrderType.SELL, 307, 1.5f));

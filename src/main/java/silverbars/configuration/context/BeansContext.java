@@ -8,6 +8,7 @@ import silverbars.adapter.api.rest.orders.helper.RegisterOrderRestAdapterHelper;
 import silverbars.adapter.api.rest.orders.dto.transformer.OrderDtoTransformer;
 import silverbars.adapter.api.rest.orders.dto.transformer.OrderSummaryDtoTransformer;
 import silverbars.adapter.db.MemoryBasedDbAdapter;
+import silverbars.configuration.HttpServerConfig;
 import silverbars.service.OrderRegistrationService;
 import silverbars.service.OrdersSummaryService;
 import silverbars.util.http.encoding.EncodeStringTo64BitsUtil;

@@ -58,6 +58,7 @@ public class HttpClient {
         if (isLoggingEnabled) LOGGER.info("Sending request to URL : {}", urlAsString);
 
         int responseCode = 0;
+        String response = "";
 
         try {
             final HttpURLConnection httpURLConnection = createHttpUrlConnection(urlAsString);
@@ -67,7 +68,8 @@ public class HttpClient {
 
             responseCode = getResponseCode(httpURLConnection);
             final InputStream inputStream = getHttpResponse(httpURLConnection, responseCode);
-            if (responseCode == 200) return generateResponse(inputStream);
+            response = generateResponse(inputStream);
+            if (responseCode == 200) return response;
 
         } catch (Exception ex) {
 
@@ -78,7 +80,7 @@ public class HttpClient {
             final String errorMsg = "An exception happened after a " + methodType + " request "
                                     + "to url: " + urlAsString
                                     + " - Given error: " + ex.getClass() + "  : " + ex.getMessage();
-            throw new HttpClientException(responseCode, errorMsg, ex);
+            throw new HttpClientException(responseCode, errorMsg, response, ex);
         }
 
         if (shouldWeRetryHttpCall(methodType, numberOfRetryCallsMade)) {
@@ -88,7 +90,7 @@ public class HttpClient {
         final String errorMsg = "The HTTP response is " + responseCode + " for a "
                                 + methodType + " request to url: " + urlAsString
                                 + ". Given response: " + responseCode;
-        throw new HttpClientException(responseCode, errorMsg);
+        throw new HttpClientException(responseCode, errorMsg, response);
     }
 
     private String retryHttpCall(final HttpMethodType methodType,
@@ -157,22 +159,27 @@ public class HttpClient {
         return httpURLConnection.getErrorStream();
     }
 
-    private String generateResponse(final InputStream inputStream) throws IOException {
+    private String generateResponse(final InputStream inputStream) {
         if (inputStream == null) return "";
 
         final BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
         final StringBuilder response = new StringBuilder();
         String inputLine;
 
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
+        try {
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+
+        } catch (Exception ex) {
+            return "";
         }
-        in.close();
 
         return response.toString();
     }
 
-    private HttpURLConnection createHttpUrlConnection(final String urlAsString) throws IOException {
+    private HttpURLConnection  createHttpUrlConnection(final String urlAsString) throws IOException {
         final URL url = new URL(urlAsString);
         return (HttpURLConnection) url.openConnection();
     }

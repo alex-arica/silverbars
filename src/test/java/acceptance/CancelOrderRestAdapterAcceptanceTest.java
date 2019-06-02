@@ -2,25 +2,34 @@ package acceptance;
 
 import acceptance.util.AcceptanceTestService;
 import acceptance.util.client.HttpClient;
+import acceptance.util.client.HttpClientException;
 import com.google.gson.Gson;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import silverbars.Main;
+import silverbars.adapter.api.rest.orders.dto.ErrorDto;
 import silverbars.adapter.api.rest.orders.dto.OrderDto;
 import silverbars.adapter.db.MemoryBasedDbAdapter;
 import silverbars.model.OrderModel;
 import silverbars.model.OrderType;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 public class CancelOrderRestAdapterAcceptanceTest {
 
     private final Gson gson = new Gson();
-    final Set<OrderModel> orders = new HashSet<>();
+    private final List<OrderModel> orders = new ArrayList<>();
+
+    @Before
+    public void beforeTest() {
+        AcceptanceTestService.start();
+        insertOrdersInDb();
+    }
 
     @After
     public void afterTest() {
@@ -28,21 +37,34 @@ public class CancelOrderRestAdapterAcceptanceTest {
     }
 
     @Test
-    public void test() {
+    public void GIVEN_order_id_to_cancel_WHEN_http_delete_request_sent_THEN_order_should_be_deleted_from_db_AND_deleted_order_dto_should_be_returned() {
 
-        AcceptanceTestService.start();
+        final OrderModel orderToCancel = givenOrderToCancel();
 
-        insertOrdersInDb();
+        final OrderDto canceledOrderDtoToTest = whenHttpDeleteRequestSent(orderToCancel.getOrderId());
 
-        final OrderModel expectedOrderToRemove = orders.iterator().next();
+        thenOrderShouldBeRemovedFromDb();
+        checkCancelledOrderDto(canceledOrderDtoToTest, orderToCancel);
+    }
 
-        final HttpClient httpClient = new HttpClient();
-        final String removedOrderJson = httpClient.deleteRequest("http://localhost:26034/order?orderId=" + expectedOrderToRemove.getOrderId());
+    @Test
+    public void GIVEN_order_id_is_missing_WHEN_http_delete_request_sent_THEN_HTTP_400_should_be_returned_with_ErrorDto() {
 
-        final OrderDto removedOrderDtoToTest = gson.fromJson(removedOrderJson, OrderDto.class);
+        final HttpClientException httpClientException = whenHttpDeleteRequestReceivedErrorResponse(null);
 
-        checkRemovedOrderDto(removedOrderDtoToTest, expectedOrderToRemove);
-        verifyOrderWasRemovedFromDb(expectedOrderToRemove);
+        final String expectedErrorMessage = "The DELETE parameter orderId is expected.";
+        thenResponseShouldBeHttp400WithErrorDto(httpClientException, expectedErrorMessage);
+    }
+
+    @Test
+    public void GIVEN_order_id_does_not_exist_in_DB_WHEN_http_delete_request_sent_THEN__HTTP_400_should_be_returned_with_ErrorDto() {
+
+        final String orderIdToCancel = givenOrderIdDoesNotExistInDb();
+
+        final HttpClientException httpClientException = whenHttpDeleteRequestReceivedErrorResponse(orderIdToCancel);
+
+        final String expectedErrorMessage = "The given orderId: " + orderIdToCancel + " does not match with a registered order. We cannot cancel it.";
+        thenResponseShouldBeHttp400WithErrorDto(httpClientException, expectedErrorMessage);
     }
 
     private void insertOrdersInDb() {
@@ -50,25 +72,64 @@ public class CancelOrderRestAdapterAcceptanceTest {
         givenOrders().stream().forEach(order -> memoryBasedDbAdapter.register(order));
     }
 
-    private Set<OrderModel> givenOrders() {
+    private List<OrderModel> givenOrders() {
         orders.add(new OrderModel("ord1", "user1", 3.5f, 306, OrderType.SELL));
         orders.add(new OrderModel("ord2", "user2", 1.2f, 310, OrderType.SELL));
         return orders;
     }
 
-    private void checkRemovedOrderDto(final OrderDto removedOrderDto,
-                                      final OrderModel expectedRemovedOrder) {
-
-        assertEquals(expectedRemovedOrder.getOrderId(), removedOrderDto.orderId);
-        assertEquals(expectedRemovedOrder.getUserId(), removedOrderDto.userId);
-        assertEquals(expectedRemovedOrder.getPrice(), removedOrderDto.price);
-        assertEquals(Float.valueOf(expectedRemovedOrder.getQuantity()), Float.valueOf(removedOrderDto.quantity));
-        assertEquals(expectedRemovedOrder.getOrderType(), removedOrderDto.orderType);
+    private String givenOrderIdDoesNotExistInDb() {
+        return "12345678";
     }
 
-    private void verifyOrderWasRemovedFromDb(final OrderModel expectedOrderToRemove) {
+    private OrderModel givenOrderToCancel() {
+        return orders.get(0);
+    }
+
+    private OrderDto whenHttpDeleteRequestSent(final String orderIdToCancel) {
+        final HttpClient httpClient = new HttpClient();
+        final String canceledOrderJson = httpClient.deleteRequest("http://localhost:26034/order?orderId=" + orderIdToCancel);
+        return gson.fromJson(canceledOrderJson, OrderDto.class);
+    }
+
+    private HttpClientException whenHttpDeleteRequestReceivedErrorResponse(final String orderIdToCancel) {
+
+        final HttpClient httpClient = new HttpClient();
+
+        try {
+            final String orderIdParam = (orderIdToCancel != null) ? "?orderId=" + orderIdToCancel : "";
+            httpClient.deleteRequest("http://localhost:26034/order" + orderIdParam);
+        } catch (HttpClientException ex) {
+            return ex;
+        }
+
+        return null;
+    }
+
+    private void checkCancelledOrderDto(final OrderDto canceledOrderDtoToTest,
+                                        final OrderModel expectedOrder) {
+
+        assertEquals(expectedOrder.getOrderId(), canceledOrderDtoToTest.orderId);
+        assertEquals(expectedOrder.getUserId(), canceledOrderDtoToTest.userId);
+        assertEquals(expectedOrder.getPrice(), canceledOrderDtoToTest.price);
+        assertEquals(Float.valueOf(expectedOrder.getQuantity()), Float.valueOf(canceledOrderDtoToTest.quantity));
+        assertEquals(expectedOrder.getOrderType(), canceledOrderDtoToTest.orderType);
+    }
+
+    private void thenOrderShouldBeRemovedFromDb() {
+
+        final OrderModel expectedOrderToCancel = givenOrderToCancel();
+
         final Set<OrderModel> registeredOrders = Main.beansContext.memoryBasedDbAdapter.getAll();
         assertEquals(1, registeredOrders.size());
-        assertFalse(registeredOrders.contains(expectedOrderToRemove));
+        assertFalse(registeredOrders.contains(expectedOrderToCancel));
+    }
+
+    private void thenResponseShouldBeHttp400WithErrorDto(final HttpClientException httpClientException,
+                                                         final String expectedErrorMessage) {
+        assertNotNull(httpClientException);
+        assertEquals(400, httpClientException.getHttpResponseCode());
+        final ErrorDto errorDto = gson.fromJson(httpClientException.getResponse(), ErrorDto.class);
+        assertEquals(expectedErrorMessage, errorDto.message);
     }
 }

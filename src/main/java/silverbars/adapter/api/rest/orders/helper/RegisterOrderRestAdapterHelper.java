@@ -49,7 +49,7 @@ public class RegisterOrderRestAdapterHelper {
             LOGGER.info("Order to register: {}", orderDto);
 
         } catch (IllegalArgumentException ex) {
-            LOGGER.info("Validation error. Given message: {}", ex.getMessage());
+            LOGGER.warn("Validation error. Given message: {}", ex.getMessage());
             respondWithBadRequestMsg(httpResponse, ex);
             return;
         }
@@ -73,16 +73,9 @@ public class RegisterOrderRestAdapterHelper {
 
         checkBodyIsNotEmpty(requestBody);
 
-        try {
-            final OrderDto orderDto = gson.fromJson(requestBody, OrderDto.class);
-            validateOrderDtoFields(orderDto);
-            return orderDto;
-
-        } catch (Exception ex) {
-            throw new IllegalArgumentException("The given JSON is not in the expected format " +
-                                                "and cannot be transformed into an OrderDto. " +
-                                                "Given error: " + ex.getMessage());
-        }
+        final OrderDto orderDto = gson.fromJson(requestBody, OrderDto.class);
+        validateOrderDtoFields(orderDto);
+        return orderDto;
     }
 
     private void checkBodyIsNotEmpty(final String requestBody) {
@@ -110,7 +103,7 @@ public class RegisterOrderRestAdapterHelper {
         }
 
         if (orderDto.orderType == null) {
-            throw new IllegalArgumentException("The given OrderDto does not have a valid orderType. Expected: " + getValidOrderTypes());
+            throw new IllegalArgumentException("The given OrderDto does not have a valid orderType. Expected values: " + getValidOrderTypes());
         }
     }
 

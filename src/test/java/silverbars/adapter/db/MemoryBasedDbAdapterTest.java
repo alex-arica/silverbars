@@ -30,7 +30,7 @@ public class MemoryBasedDbAdapterTest {
     }
 
     @Test
-    public void test_register_and_remove_and_getAll() {
+    public void test_remove_and_getAll() {
 
         classToTest.register(order1);
         classToTest.register(order2);

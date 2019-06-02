@@ -3,7 +3,7 @@ package silverbars.model;
 import java.util.Objects;
 
 // Immutable
-public class OrderSummaryModel {
+public final class OrderSummaryModel {
 
     private final int price;
     private final OrderType orderType;
