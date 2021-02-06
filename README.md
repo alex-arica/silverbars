@@ -28,3 +28,5 @@ The service exposes a restful API on HTTP port 26034
 ## Run service locally from IDE
 
 - Run the file: Main.java
+
+Message me if you have any question.
